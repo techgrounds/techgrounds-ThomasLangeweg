@@ -13,12 +13,16 @@ Leren hoe je moet omgaan met Git en Github, hoe je moet omgaan met **Source code
 
 ## Opdracht
 ### Gebruikte bronnen
-Voor algemene kennis van versiebeheer https://git-scm.com/book/nl/v2/Aan-de-slag-Over-versiebeheer
+- Voor algemene kennis van versiebeheer https://git-scm.com/book/nl/v2/Aan-de-slag-Over-versiebeheer
 
-Vedere bronnen github fundamentals https://github.com/techgrounds/git-github-fundamentals-ThomasLangeweg
+- Voor Push en Pull git https://www.datacamp.com/tutorial/git-push-pull
+
+- Vedere bronnen github fundamentals https://github.com/techgrounds/git-github-fundamentals-ThomasLangeweg
+
+
 
 ### Ervaren problemen
-[Geef een korte beschrijving van de problemen waar je tegenaan bent gelopen met je gevonden oplossing.]
+In eerste instantie geprobeerd om push en pull te gebruiken met Git Bash, hier kreeg ik vaak niet het gewenste resultaat met het werken in een nieuwe branch. Terwijl het de aanpassing niet groot was en werd het door de meerdere branches. Uiteindelijk wel gelukt om iets door te zetten.  
 
 ### Resultaat
 1. Opdracht 1: 
