@@ -31,4 +31,4 @@ Vedere bronnen github fundamentals https://github.com/techgrounds/git-github-fun
 ![Alt text](Screenshots/image-1.png)
 
    * Met Github Desktop wat aanpassingen en code opgestuurd naar de repository op Github.
-   *  
+![Alt text](Screenshots/image-2.png)
