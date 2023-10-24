@@ -24,11 +24,11 @@ Vedere bronnen github fundamentals https://github.com/techgrounds/git-github-fun
 1. Opdracht 1: 
    * Het aanmaken van een repository
 
-![Alt text](image.png)
+![Alt text](Screenshots/image.png)
 
    * Via Settings -> Collaborators -> Add people heb ik mijn mede peers uitgenodigd
 
-![Alt text](image-1.png)
+![Alt text](Screenshots/image-1.png)
 
    * Met Github Desktop wat aanpassingen en code opgestuurd naar de repository op Github.
    *  
