@@ -1,15 +1,28 @@
-# [Onderwerp]
+# Markdown
 [Geef een korte beschrijving van het onderwerp]
 
 ## Key-terms
-[Schrijf hier een lijst met belangrijke termen met eventueel een korte uitleg.]
+1. Markdown [x]
+2. WYSIWYG [x]
+3. WYSIWYM [x]
+
 
 ## Opdracht
 ### Gebruikte bronnen
-[Plaats hier de bronnen die je hebt gebruikt.]
+
+Gebruik van de volgende cheatsheet: https://devhints.io/markdown 
+
+Voor Markdown: https://www.youtube.com/watch?v=34_dRW42kYI&ab_channel=NeuralNine
+
+Markdown te gebruiken in VS code: https://www.youtube.com/watch?v=DLLrcr9u_XI&ab_channel=DeAndreQueary 
 
 ### Ervaren problemen
-[Geef een korte beschrijving van de problemen waar je tegenaan bent gelopen met je gevonden oplossing.]
+Het lukte mij niet om Markdown te gebruiken voor VS code, na het vinden van een Youtube filmpje over hoe het op te zetten, verder geen problemen in het maken van de opdracht. 
 
 ### Resultaat
-[Omschrijf hoe je weet dat je opdracht gelukt is (gebruik screenshots waar nodig).]
+Aan de hand van de cheatsheet en wat voorbeelden online heb ik het onderstaande gemaakt:
+![Alt text](image-4.png)
+
+Wat zich vertaalde in het onderste:
+![Alt text](image-3.png)
+
