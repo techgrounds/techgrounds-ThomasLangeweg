@@ -1,21 +1,15 @@
-# Working with text (CLI)
-Het leren werken met input en output in je terminal.
+# [Onderwerp]
+[Geef een korte beschrijving van het onderwerp]
 
 ## Key-terms
-1. Stdin [x]
-2. Stdout [x]
-3. Echo [x]
-4. Redirection [x]
-   
+[Schrijf hier een lijst met belangrijke termen met eventueel een korte uitleg.]
+
 ## Opdracht
 ### Gebruikte bronnen
-Voor een echo command heb ik https://www.youtube.com/watch?v=S_ySzMHxMjw&ab_channel=LearnLinuxTV gebruikt.
+[Plaats hier de bronnen die je hebt gebruikt.]
 
 ### Ervaren problemen
-Geen problemen ervaren.
+[Geef een korte beschrijving van de problemen waar je tegenaan bent gelopen met je gevonden oplossing.]
 
 ### Resultaat
-Het toevoegen van extra zin aan mijn text bestand:
-
-
-![Alt text](<Screenshot 2023-10-25 121710.png>)
+[Omschrijf hoe je weet dat je opdracht gelukt is (gebruik screenshots waar nodig).]

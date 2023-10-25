@@ -21,4 +21,4 @@ Het toevoegen van extra zin aan mijn text bestand:
 
 Aan de hand van **grep -w** het woord *Techgrounds* uit mijn txt bestand gehaald en deze overgezet naar een nieuw txt bestand genaamd Techgrounds:
 
-![Alt text](<Screenshots/Screenshot 2023-10-25 120913.png>)
+![Alt text](<Screenshots/Screenshot 2023-10-25 122756.png>)
