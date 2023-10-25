@@ -17,5 +17,8 @@ Geen problemen ervaren.
 ### Resultaat
 Het toevoegen van extra zin aan mijn text bestand:
 
+![Alt text](<Screenshots/Screenshot 2023-10-25 121710.png>)
 
-![Alt text](<Screenshot 2023-10-25 121710.png>)
+Aan de hand van **grep -w** het woord *Techgrounds* uit mijn txt bestand gehaald en deze overgezet naar een nieuw txt bestand genaamd Techgrounds:
+
+![Alt text](<Screenshots/Screenshot 2023-10-25 120913.png>)
