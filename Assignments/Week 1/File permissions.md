@@ -29,3 +29,8 @@ Ik heb nog steeds toegang tot het bekijken van mijn text bestand als ik permissi
 De owner van het txt bestand aangepast naar een andere user thomas_2:
 
 ![Alt text](<Screenshots/Screenshot 2023-10-25 125736.png>)
+
+Hierbij de group aangepast naar **sudo**
+
+![Alt text](<Screenshots/Screenshot 2023-10-25 143131.png>)
+
