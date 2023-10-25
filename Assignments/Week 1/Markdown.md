@@ -21,8 +21,8 @@ Het lukte mij niet om Markdown te gebruiken voor VS code, na het vinden van een 
 
 ### Resultaat
 Aan de hand van de cheatsheet en wat voorbeelden online heb ik het onderstaande gemaakt:
-![Alt text](image-4.png)
+![Alt text](Screenshots/image-4.png)
 
 Wat zich vertaalde in het onderste:
-![Alt text](image-3.png)
+![Alt text](Screenshots/image-3.png)
 
