@@ -38,6 +38,10 @@ Decimal | Hex
 125| 7d
 209| d1
 
-Volgende opdracht klopt volgens mij niet helemaal:
-
-![Alt text](<Screenshots/Screenshot 2023-10-30 153850.png>)
+Hex | Decimal
+---|---
+88| 136
+e0| 224
+cb| 203
+2f| 47
+d8| 216
