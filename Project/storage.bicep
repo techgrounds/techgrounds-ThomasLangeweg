@@ -1,6 +1,8 @@
-// This is the bicep file which creates the Storage account with a blob container
+// This is the bicep file which creates the Storage account with a blob container.
+targetScope = 'resourceGroup'
+
 @description('Name of the blob as it is stored in the blob container')
-param filename string = 'installapache.sh'
+param filename string = 'installapache'
 
 @description('Name of the blob container')
 param containerName string = 'data'
@@ -9,14 +11,15 @@ param containerName string = 'data'
 param location string = resourceGroup().location
 
 @description('Desired name of the storage account')
-param storageAccountName string = '${resourceGroup().name}uniquestorage'
-
-@description('UTC timestamp used to create distinct deployment scripts for each deployment')
-param utcValue string = utcNow()
+param storageAccountName string = 'svrstorageprojectv1'
 
 
-resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+resource storageaccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: storageAccountName
+  tags: {
+    name : 'Cloud'
+    value: 'Cloudproject12'
+  }
   location: location
   sku: {
     name: 'Standard_LRS'
@@ -24,12 +27,6 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   properties: {
     accessTier: 'Hot'
-    allowBlobPublicAccess: false
-    allowCrossTenantReplication: false
-    encryption: {
-      keySource: 'Microsoft.Storage'
-      
-    }
   }
   resource blobService 'blobServices' = {
     name: 'default'
@@ -40,37 +37,37 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
-resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
-  name: 'deployscript-upload-blob'
+resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
+  name: 'deployscript-upload-blob-'
   location: location
   kind: 'AzureCLI'
   properties: {
     azCliVersion: '2.26.1'
-    timeout: 'PT5M'
-    retentionInterval: 'PT1H'
+    timeout: 'PT1H'
+    retentionInterval: 'P1D'
     cleanupPreference: 'OnSuccess'
     storageAccountSettings: {
       storageAccountName: storageAccountName
-      storageAccountKey: storage.listKeys().keys[0].value
+      storageAccountKey: storageaccount.listKeys().keys[0].value
     }
     environmentVariables: [
       {
         name: 'AZURE_STORAGE_ACCOUNT'
-        value: storage.name
+        value: storageaccount.name
       }
       {
         name: 'AZURE_STORAGE_KEY'
-        secureValue: storage.listKeys().keys[0].value
+        secureValue: storageaccount.listKeys().keys[0].value
       }
       {
         name: 'CONTENT'
-        value: loadTextContent('../Project/installapache.sh')
+        value: loadTextContent('./installapache.sh')
       }
     ]
-    scriptContent: 'echo "$CONTENT" > ${filename} && az storage blob upload -f ${filename} -c ${containerName} -n ${filename}'
+     scriptContent: 'echo "$CONTENT" > ${filename} && az storage blob upload -f ${filename} -c ${containerName} -n ${filename}'
   }
 }
-// return the name
-output name string = storage.name
-output bloburl string = storage.properties.primaryEndpoints.blob
-//output key string = storage.listKeys().keys[0].value
+
+
+output storagename string = storageaccount.name
+output bloburl string = storageaccount.properties.primaryEndpoints.blob

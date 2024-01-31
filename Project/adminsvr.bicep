@@ -7,7 +7,7 @@ param adminUsername string
 param adminPassword string
 
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
-param dnsLabelPrefix string = toLower('${vmName}-${uniqueString(resourceGroup().id, vmName)}')
+param mgmtdnsLabelPrefix string
 
 @description('Name for the Public IP used to access the Virtual Machine.')
 param publicIpName string = 'WinPublicIP'
@@ -24,10 +24,12 @@ param publicIPAllocationMethod string = 'Static'
   'Basic'
   'Standard'
 ])
-param publicIpSku string = 'Basic'
+param publicIpSku string = 'Standard'
 
 @description('The Windows version for the VM. This will pick a fully patched image of this given Windows version.')
 @allowed([
+  '2019-Datacenter'
+  '2016-Datacenter'
   '2016-datacenter-gensecond'
   '2016-datacenter-server-core-g2'
   '2016-datacenter-server-core-smalldisk-g2'
@@ -63,15 +65,8 @@ param location string = resourceGroup().location
 @description('Name of the virtual machine.')
 param vmName string = 'simple-vm'
 
-@description('Security Type of the Virtual Machine.')
-@allowed([
-  'Standard'
-  'TrustedLaunch'
-])
-param securityType string = 'Standard'
+param storageaccount1 string = 'adminserverproject1'
 
-param storageAccountName string
-// var storageAccountName = 'bootdiags${uniqueString(resourceGroup().id)}'
 var nicName = 'WinVMNic'
 var addressPrefix = '10.20.20.0/24'
 var subnetName = 'Subnet'
@@ -79,28 +74,34 @@ var subnetPrefix = '10.20.20.0/25'
 var virtualNetworkName = 'WinVNET'
 var networkSecurityGroupName = 'Win-NSG'
 
-resource storageaccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
-  name: storageAccountName
+resource storageaccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: storageaccount1
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
 }
 
-resource publicIp 'Microsoft.Network/publicIPAddresses@2022-05-01' = {
+resource pip 'Microsoft.Network/publicIPAddresses@2023-06-01' = {
   name: publicIpName
   location: location
-  zones: [
-    '1'
-  ]
   sku: {
     name: publicIpSku
   }
+  zones: [
+    '1'
+  ]
   properties: {
     publicIPAllocationMethod: publicIPAllocationMethod
     dnsSettings: {
-      domainNameLabel: dnsLabelPrefix
+      domainNameLabel: mgmtdnsLabelPrefix
     }
   }
 }
 
-resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2022-05-01' = {
+
+resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-06-01' = {
   name: networkSecurityGroupName
   location: location
   properties: {
@@ -112,9 +113,9 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2022-05-0
           access: 'Allow'
           direction: 'Inbound'
           destinationPortRange: '3389'
-          protocol: 'Tcp'
+          protocol: 'TCP'
           sourcePortRange: '*'
-          sourceAddressPrefix: machineIP
+         sourceAddressPrefix: '192.168.2.9'
           destinationAddressPrefix: '*'
         }
       }
@@ -145,7 +146,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2022-05-01' = {
   }
 }
 
-resource nic 'Microsoft.Network/networkInterfaces@2022-05-01' = {
+resource networkinterface 'Microsoft.Network/networkInterfaces@2022-05-01' = {
   name: nicName
   location: location
   properties: {
@@ -155,7 +156,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-05-01' = {
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           publicIPAddress: {
-            id: publicIp.id
+            id: pip.id
           }
           subnet: {
             id: resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, subnetName)
@@ -164,15 +165,15 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-05-01' = {
       }
     ]
   }
-  dependsOn: [
-
-    virtualNetwork
-  ]
 }
 
-resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
+resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
   name: vmName
   location: location
+  tags: {
+    name : 'Cloud'
+    value: 'Cloudproject12'
+  }
   zones: [
     '1'
   ]
@@ -198,24 +199,30 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
           storageAccountType: 'StandardSSD_LRS'
         }
       }
+      dataDisks: [
+        {
+          diskSizeGB: 1023
+          lun: 0
+          createOption: 'Empty'
+        }
+      ]
     }
     networkProfile: {
       networkInterfaces: [
         {
-          id: nic.id
+          id: networkinterface.id
         }
       ]
     }
-    diagnosticsProfile: {
-      bootDiagnostics: {
-        enabled: true
-        storageUri: storageaccount.properties.primaryEndpoints.blob
-      }
-    }
+    // diagnosticsProfile: {
+    //  bootDiagnostics: {
+    //    enabled: true
+    //    storageUri: storageaccount1.properties.primaryEndpoints.blob
+    //  }
+    //}
   }
 }
 
-output hostname string = publicIp.properties.dnsSettings.fqdn
+
+output hostname string = pip.properties.dnsSettings.fqdn
 output winvnetname string = virtualNetworkName
-output ipadd string = pip.properties.ipAddress
-output winname string = vmName

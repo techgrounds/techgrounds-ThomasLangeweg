@@ -1,72 +1,62 @@
 /* maindeployment.bicep
-Purpose: Deployement of modules in files
-Created by: Thomas
+Purpose: Deployment of modules in files
+Created by: Thomas Langeweg
 */
 
 targetScope = 'subscription'
 
-// Username Admin
+// Name for Webserver
 param adminuser string
 
-// Password for admin
+// Password for Webserver
 @secure()
 @minLength(12)
 param adminPassword string
 
-// Dns Name for webserver
+// DNS Name for Webserver
 param dnsweb string
 
-// Username for Windows server
-param mgmtuser string
+//Username for Windows Admin server
+param mgmtUser string
 
-// Password for Windows admin
+//Password for Windows Admin server (Must be atleast 12 characters)
 @secure()
 @minLength(12)
-param mgmtpassword string
+param mgmtPassword string
 
-// DNS for Windows
+// DNS name for Windows Server
 param dnswindows string
 
-@description('Set Vnet name (Local)')
-param WinvirtuelNetworkName string = 'WinVnet'
+var rgname = 'rgroupProject'
+param location string = 'westeurope'
 
-@description('Set Vnet name (remote)')
-param WebVirtuelNetworkName string = 'WebVnet'
 
-@description('Key Vault Name')
-param Keyvaultname string = 'kvproject'
-
-var rgname = 'rgtechgrounds'
-var location = 'westeurope'
-var webvnet = webservervm.outputs.webvnetname
-var winvet = winadminvm.outputs.winvnetname
-
-resource rgroup 'Microsoft.Resources/resourceGroups@2023-07-01' = {
+//---------------------Resource Group--------------------------//
+resource rgroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: rgname
   location: location
   tags: {
     name : 'Cloud'
-    value : 'Cloudproject12'
+    value: 'Cloudproject12'
   }
 }
-
-module storageaccount 'storage.bicep' = {
+//---------------------Storage Account-------------------------//
+module storageaccount './storage.Bicep' = {
   scope: rgroup
-  name: 'deploymentstorage'
+  name: 'storagedeployment'
 }
-
+//------------------Windows Admin Server-----------------------//
 module winadminvm 'adminsvr.bicep' = {
   scope: rgroup
-  name: Adminserver
+  name: 'Adminserver'
   params: {
     location: rgroup.location
-    adminPassword: mgmtpassword
-    adminUsername: mgmtuser
-    dnsLabelPrefix: dnswindows
-    storageAccountName: storageaccount.outputs.storagename
+    adminUsername: mgmtUser
+    adminPassword: mgmtPassword
+    mgmtdnsLabelPrefix: dnswindows
   }
 }
-
+//------------------------Webserver----------------------------//
 module webservervm 'websvr.bicep' = {
   scope: rgroup
   name: 'Webserver'
@@ -75,7 +65,5 @@ module webservervm 'websvr.bicep' = {
     adminUsername: adminuser
     adminPasswordOrKey: adminPassword
     dnsNameForPublicIP: dnsweb
-    storageAccountName: storageaccount.outputs.storagename    
-    WinserverIpAdd: winadminvm.outputs.ipadd
-    }
+  }
 }

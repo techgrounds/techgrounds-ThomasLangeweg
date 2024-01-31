@@ -4,9 +4,8 @@ param adminUsername string
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
 param dnsNameForPublicIP string
 
-@description('location for resources')
+@description('Location for all resources.')
 param location string = resourceGroup().location
-
 
 @allowed([
   'sshPublicKey'
@@ -19,27 +18,49 @@ param authenticationType string = 'password'
 @secure()
 param adminPasswordOrKey string
 
-@description('UTC timestamp used to create distinct deployment scripts for each deployment')
-param utcValue string = utcNow()
+@description('The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version.')
+@allowed([
+  'Ubuntu-1804'
+  'Ubuntu-2004'
+  'Ubuntu-2204'
+])
+param ubuntuOSVersion string = 'Ubuntu-2004'
 
-param storageAccountName string = 'webserverstorageproj'
+@description('Size of the virtual machine')
+param vmSize string = 'Standard_B1ls'
 
-param WinserverIpAdd string
+var imageReference = {
+  'Ubuntu-1804': {
+    publisher: 'Canonical'
+    offer: 'UbuntuServer'
+    sku: '18_04-lts-gen2'
+    version: 'latest'
+  }
+'Ubuntu-2004': {
+  publisher: 'Canonical'
+  offer: '0001-com-ubuntu-server-focal'
+  sku: '20_04-lts-gen2'
+  version: 'latest'
+ }
+'Ubuntu-2204': {
+  publisher: 'Canonical'
+  offer: '0001-com-ubuntu-server-jammy'
+  sku: '22_04-lts-gen2'
+  version: 'latest'
+ }
+}
 
-var ubuntuOSVersion = 'Ubuntu-2004'
-var vmSize = 'Standard_B1ls'
-var publicIpSku = 'Standard'
-var imagePublisher = 'Canonical'
-var imageOffer = 'UbuntuServer'
-var nicName_var = 'WebVMNic'
-var addressPrefix = '10.10.10.0/24'
-var subnetName = 'WebSubnet'
-var subnetPrefix = '10.10.10.0/25'
-var publicIPAddressName_var = 'WebPublicIP'
+var storageAccountName = 'bootdiags${uniqueString(resourceGroup().id)}'
+var nicNamevar = 'WebserverVMNic'
+var osDiskType = 'StandardSSD_LRS'
+var addressPrefix = '10.10.0.0/16'
+var subnetName = 'Subnet'
+var subnetPrefix = '10.10.10.0/24'
+var publicIpName = 'WebserverPublicIP'
 var publicIPAddressType = 'Static'
-var vmName_var = 'WebUbuntuVM'
-var virtualNetworkName_var = 'WebVNET'
-var subnetRef = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName_var, subnetName)
+var vmNamevar = 'WebserverVM'
+var virtualNetworkNamevar = 'WebserverVNET'
+var subnetRef = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkNamevar, subnetName)
 var linuxConfiguration = {
   disablePasswordAuthentication: true
   ssh: {
@@ -51,19 +72,25 @@ var linuxConfiguration = {
     ]
   }
 }
+var networkSecurityGroupNamevar = 'Webserver-NSG'
 
-var networkSecurityGroupName_var = 'WebVM-NSG'
-var blobfileurl = 'https://webserverstorageproj.blob.core.windows.net/data/installapache.sh'
+resource storageaccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: storageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+}
 
-
-resource publicIPAddressName 'Microsoft.Network/publicIPAddresses@2020-05-01' = {
-  name: publicIPAddressName_var
+resource pip 'Microsoft.Network/publicIPAddresses@2023-06-01' = {
+  name: publicIpName
   location: location
   zones:[
     '2'
   ]
   sku: {
-    name: publicIpSku
+    name: 'Standard'
   }
   properties: {
     publicIPAllocationMethod: publicIPAddressType
@@ -73,32 +100,8 @@ resource publicIPAddressName 'Microsoft.Network/publicIPAddresses@2020-05-01' = 
   }
 }
 
-resource networkInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = {
-  name: nicName_var
-  location: location
-  properties: {
-    ipConfigurations: [
-      {
-        name: 'ipconfig1'
-        properties: {
-          privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: publicIPAddressName.id
-          }
-          subnet: {
-            id: subnetRef
-          }
-        }
-      }
-    ]
-  }
-  dependsOn: [
-    virtualNetworkName
-  ]
-}
-
 resource networkSecurityGroupName 'Microsoft.Network/networkSecurityGroups@2023-06-01' = {
-  name: networkSecurityGroupName_var
+  name: networkSecurityGroupNamevar
   location: location
   properties: {
     securityRules: [
@@ -111,8 +114,7 @@ resource networkSecurityGroupName 'Microsoft.Network/networkSecurityGroups@2023-
           direction: 'Inbound'
           destinationPortRange: '22'
           protocol: 'Tcp'
-          //sourceAddressPrefix: '*'
-          sourceAddressPrefix: WinserverIpAdd
+          sourceAddressPrefix: '*'
           sourcePortRange: '*'
           destinationAddressPrefix: '*'
         }
@@ -131,26 +133,12 @@ resource networkSecurityGroupName 'Microsoft.Network/networkSecurityGroups@2023-
           destinationAddressPrefix: '*'
         }
       }
-      {
-        id: 'HTTPS'
-        name: 'HTTPS'
-        properties: {
-          priority: 1003
-          access: 'Allow'
-          direction: 'Inbound'
-          destinationPortRange: '443'
-          protocol: 'Tcp'
-          sourceAddressPrefix: '*'
-          sourcePortRange: '*'
-          destinationAddressPrefix: '*'
-        }
-     } 
     ]
   }
 }
 
-resource virtualNetworkName 'Microsoft.Network/virtualNetworks@2020-05-01' = {
-  name: virtualNetworkName_var
+resource virtualNetworkName 'Microsoft.Network/virtualNetworks@2023-06-01' = {
+  name: virtualNetworkNamevar
   location: location
   properties: {
     addressSpace: {
@@ -172,12 +160,38 @@ resource virtualNetworkName 'Microsoft.Network/virtualNetworks@2020-05-01' = {
   }
 }
 
-resource vmName 'Microsoft.Compute/virtualMachines@2023-09-01' = {
-  name: vmName_var
+resource nicName 'Microsoft.Network/networkInterfaces@2023-06-01' = {
+  name: nicNamevar
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          privateIPAllocationMethod: 'Dynamic'
+          publicIPAddress: {
+            id: pip.id
+          }
+          subnet: {
+            id: subnetRef
+          }
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    virtualNetworkName
+  ]
+}
+
+
+
+resource vmName 'Microsoft.Compute/virtualMachines@2020-06-01' = {
+  name: vmNamevar
   location: location
   tags: {
     name : 'Cloud'
-    value : 'Cloudproject12'
+    value: 'Cloudproject12'
   }
   zones:[
     '2'
@@ -186,25 +200,14 @@ resource vmName 'Microsoft.Compute/virtualMachines@2023-09-01' = {
     hardwareProfile: {
       vmSize: vmSize
     }
-    osProfile: {
-      computerName: vmName_var
-      adminUsername: adminUsername
-      adminPassword: adminPasswordOrKey
-      linuxConfiguration: ((authenticationType == 'password') ? null : linuxConfiguration)
-    }
     storageProfile: {
-      imageReference: {
-        publisher: imagePublisher
-        offer: imageOffer
-        sku: ubuntuOSVersion
-        version: 'latest'
-      }
       osDisk: {
-        name: '${vmName_var}_OSDisk'
-        caching: 'ReadWrite'
         createOption: 'FromImage'
-        
+        managedDisk: {
+          storageAccountType: osDiskType
+        }
       }
+      imageReference: imageReference[ubuntuOSVersion]   
     }
     networkProfile: {
       networkInterfaces: [
@@ -213,32 +216,14 @@ resource vmName 'Microsoft.Compute/virtualMachines@2023-09-01' = {
         }
       ]
     }
-  }
-}
-
-resource vmName_install_apache 'Microsoft.Compute/virtualMachines/extensions@2023-09-01' = {
-  parent: vmName
-  name: 'install_apache'
-  location: location
-  properties: {
-    publisher: 'Microsoft.Azure.Extensions'
-    type: 'CustomScript'
-    typeHandlerVersion: '2.1'
-    autoUpgradeMinorVersion: true
-    settings: {
-      skipDos2Unix: false
-      
-             }
-    protectedSettings: {
-      storageAccountName: storageAccountName
-      storageAccountKey: listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2022-05-01').keys[0].value
-      fileUris: [
-       'https://webserverstorageproj.blob.core.windows.net/data/installapache.sh'
-      ]
-      commandToExecute: 'sh installapache.sh'
+      osProfile: {
+        computerName: vmNamevar
+        adminUsername: adminUsername
+        adminPassword: adminPasswordOrKey
+        linuxConfiguration: ((authenticationType == 'password') ? json('null') : linuxConfiguration)
+      }
     }
   }
-}
 
 output webvnetname string = virtualNetworkName.name
-output webvmname string = vmName_var
+output webvmname string = vmNamevar
