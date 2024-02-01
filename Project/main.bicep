@@ -27,8 +27,19 @@ param mgmtPassword string
 // DNS name for Windows Server
 param dnswindows string
 
+// @description('Set the local VNet name')
+// param winVNetName string = 'winVNET'
+
+// @description('Set the remote VNet name')
+// param vmssVNetName string = 'vmssVNET'
+
+@description('Key Vault Name')
+param keyvaultname string = 'techkeyvaultproject123'
+
 var rgname = 'rgroupProject'
 param location string = 'westeurope'
+var winvnet = winadminvm.outputs.winvnetname
+var webvnet = webservervm.outputs.webvnetname
 
 
 //---------------------Resource Group--------------------------//
@@ -44,6 +55,9 @@ resource rgroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
 module storageaccount './storage.Bicep' = {
   scope: rgroup
   name: 'storagedeployment'
+  params: {
+    location : location
+ }
 }
 //------------------Windows Admin Server-----------------------//
 module winadminvm 'adminsvr.bicep' = {
@@ -67,3 +81,53 @@ module webservervm 'websvr.bicep' = {
     dnsNameForPublicIP: dnsweb
   }
 }
+//-----------------------Vnet Peering---------------------------//
+module vnetpeering 'vnetpeering.bicep' = {
+  scope: rgroup
+  name: 'vnetpeering'
+  params: {
+    WebVirtualNetworkName: webvnet
+    WinVirtualNetworkName: winvnet
+    ResourceGroupName: rgname
+  }
+}
+//------------------------KeyVault----------------------------//
+module keyvault 'keyvault.bicep' = {
+  scope: rgroup
+  name: 'keyvault'
+  params: {
+    keyvaultname: keyvaultname
+    location: location
+}
+}
+
+//------------------Encryption Webserver----------------------//
+module websvrencryption 'websvrencryption.bicep' = {
+  scope: rgroup
+  name: 'websvrencryption'
+  params: {
+    keyvaultname: keyvaultname
+    vmName_var: webservervm.outputs.webvmname
+    location: location
+  }
+  dependsOn: [
+   webservervm
+   keyvault
+  ]
+}
+
+
+//------------------Encryption Adminserver----------------------//
+module adminsvrencryption 'adminsvrencryption.bicep'= {
+  scope: rgroup
+   name: 'adminsvrencryption'
+  params: {
+     keyvaultname: keyvaultname
+     vmName: winadminvm.outputs.winvmname
+     location:location
+   }
+   dependsOn: [
+     winadminvm
+     keyvault
+   ]
+ }

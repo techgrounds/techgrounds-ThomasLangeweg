@@ -27,7 +27,7 @@ param adminPasswordOrKey string
 param ubuntuOSVersion string = 'Ubuntu-2004'
 
 @description('Size of the virtual machine')
-param vmSize string = 'Standard_B1ls'
+param vmSize string = 'Standard_B2ms'
 
 var imageReference = {
   'Ubuntu-1804': {
@@ -58,7 +58,7 @@ var subnetName = 'Subnet'
 var subnetPrefix = '10.10.10.0/24'
 var publicIpName = 'WebserverPublicIP'
 var publicIPAddressType = 'Static'
-var vmNamevar = 'WebserverVM'
+var vmName_var = 'WebserverVM'
 var virtualNetworkNamevar = 'WebserverVNET'
 var subnetRef = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkNamevar, subnetName)
 var linuxConfiguration = {
@@ -187,7 +187,7 @@ resource nicName 'Microsoft.Network/networkInterfaces@2023-06-01' = {
 
 
 resource vmName 'Microsoft.Compute/virtualMachines@2020-06-01' = {
-  name: vmNamevar
+  name: vmName_var
   location: location
   tags: {
     name : 'Cloud'
@@ -217,7 +217,7 @@ resource vmName 'Microsoft.Compute/virtualMachines@2020-06-01' = {
       ]
     }
       osProfile: {
-        computerName: vmNamevar
+        computerName: vmName_var
         adminUsername: adminUsername
         adminPassword: adminPasswordOrKey
         linuxConfiguration: ((authenticationType == 'password') ? json('null') : linuxConfiguration)
@@ -226,4 +226,4 @@ resource vmName 'Microsoft.Compute/virtualMachines@2020-06-01' = {
   }
 
 output webvnetname string = virtualNetworkName.name
-output webvmname string = vmNamevar
+output webvmname string = vmName_var

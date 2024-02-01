@@ -115,7 +115,7 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-06-0
           destinationPortRange: '3389'
           protocol: 'TCP'
           sourcePortRange: '*'
-         sourceAddressPrefix: '192.168.2.9'
+         sourceAddressPrefix: '192.168.2.8'
           destinationAddressPrefix: '*'
         }
       }
@@ -226,3 +226,4 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
 
 output hostname string = pip.properties.dnsSettings.fqdn
 output winvnetname string = virtualNetworkName
+output winvmname string = vmName
