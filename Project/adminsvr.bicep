@@ -57,7 +57,7 @@ param publicIpSku string = 'Standard'
 param OSVersion string = '2022-datacenter-azure-edition'
 
 @description('Size of the virtual machine.')
-param vmSize string = 'Standard_B1s'
+param vmSize string = 'Standard_B2ms'
 
 @description('Location for all resources.')
 param location string = resourceGroup().location
@@ -115,7 +115,7 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-06-0
           destinationPortRange: '3389'
           protocol: 'TCP'
           sourcePortRange: '*'
-         sourceAddressPrefix: '192.168.2.8'
+         sourceAddressPrefix: '86.80.125.197'
           destinationAddressPrefix: '*'
         }
       }
