@@ -77,31 +77,36 @@ module webscaleset 'webscaleset.bicep'= {
   ]
 }
 
-/*
-//------------------------Webserver----------------------------//
-module webservervm 'websvr.bicep' = {
+
+//-----------------------Vnet Peering---------------------------////VNet Peering to Webserver
+module vnetpeeringtoweb 'vnetpeering.bicep' ={
   scope: resourceGp
-  name: 'Webserver'
+  name: 'VnetPeeringWeb'
   params: {
-    location: resourceGp.location
-    adminUsername: adminuser
-    adminPasswordOrKey: adminPassword
-    dnsNameForPublicIP: dnsweb
+    existinglocalvnet: adminservervm.outputs.mgmtvnet
+    remotevnet: webscaleset.outputs.webservervnet
+    resourcegrp: resourceGp.name
   }
+  dependsOn:[
+    adminservervm
+    webscaleset
+  ]
 }
 
-
-//-----------------------Vnet Peering---------------------------//
-module vnetpeering 'vnetpeering.bicep' = {
+//VNet Peering to management server
+module vnetpeeringtomgmt 'vnetpeering.bicep' ={
   scope: resourceGp
-  name: 'vnetpeering'
+  name: 'VnetPeeringMgmt'
   params: {
-    WebVirtualNetworkName: webvnet
-    WinVirtualNetworkName: winvnet
-    ResourceGroupName: resourceGp
+    existinglocalvnet: webscaleset.outputs.webservervnet
+    remotevnet: adminservervm.outputs.mgmtvnet
+    resourcegrp: resourceGp.name
   }
+  dependsOn:[
+    adminservervm
+    webscaleset
+  ]
 }
-*/
 
 //------------------------KeyVault----------------------------//
 module keyvault 'cert.bicep' = {
