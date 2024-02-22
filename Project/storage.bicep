@@ -2,7 +2,7 @@
 targetScope = 'resourceGroup'
 
 @description('Name of the blob as it is stored in the blob container')
-param filename string = 'installapache'
+param filename string = 'installapache.sh'
 
 @description('Name of the blob container')
 param containerName string = 'data'
@@ -11,15 +11,11 @@ param containerName string = 'data'
 param location string = resourceGroup().location
 
 @description('Desired name of the storage account')
-param storageAccountName string = 'svrstorageprojectv1'
+param storageAccountName  string = '${resourceGroup().name}uniquestorage'
 
 
-resource storageaccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
-  name: storageAccountName
-  tags: {
-    name : 'Cloud'
-    value: 'Cloudproject12'
-  }
+resource storage 'Microsoft.Storage/storageAccounts@2022-05-01' = {
+  name: storageAccountName 
   location: location
   sku: {
     name: 'Standard_LRS'
@@ -27,6 +23,12 @@ resource storageaccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   kind: 'StorageV2'
   properties: {
     accessTier: 'Hot'
+    allowBlobPublicAccess: false
+    allowCrossTenantReplication: false
+    encryption: {
+      keySource: 'Microsoft.Storage'
+      
+    }
   }
   resource blobService 'blobServices' = {
     name: 'default'
@@ -38,36 +40,36 @@ resource storageaccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
 }
 
 resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
-  name: 'deployscript-upload-blob-'
+  name: 'deployscript-upload-blob'
   location: location
   kind: 'AzureCLI'
   properties: {
     azCliVersion: '2.26.1'
-    timeout: 'PT1H'
-    retentionInterval: 'P1D'
+    timeout: 'PT5M'
+    retentionInterval: 'PT1H'
     cleanupPreference: 'OnSuccess'
     storageAccountSettings: {
-      storageAccountName: storageAccountName
-      storageAccountKey: storageaccount.listKeys().keys[0].value
+      storageAccountName: storageAccountName 
+      storageAccountKey: storage.listKeys().keys[0].value
     }
     environmentVariables: [
       {
         name: 'AZURE_STORAGE_ACCOUNT'
-        value: storageaccount.name
+        value: storage.name
       }
       {
         name: 'AZURE_STORAGE_KEY'
-        secureValue: storageaccount.listKeys().keys[0].value
+        secureValue: storage.listKeys().keys[0].value
       }
       {
         name: 'CONTENT'
-        value: loadTextContent('./installapache.sh')
+        value: loadTextContent('../Project/installapache.sh')
       }
     ]
-     scriptContent: 'echo "$CONTENT" > ${filename} && az storage blob upload -f ${filename} -c ${containerName} -n ${filename}'
+    scriptContent: 'echo "$CONTENT" > ${filename} && az storage blob upload -f ${filename} -c ${containerName} -n ${filename}'
   }
 }
 
 
-output storagename string = storageaccount.name
-output bloburl string = storageaccount.properties.primaryEndpoints.blob
+output name string = storage.name
+output bloburl string = storage.properties.primaryEndpoints.blob

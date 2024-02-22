@@ -5,129 +5,142 @@ Created by: Thomas Langeweg
 
 targetScope = 'subscription'
 
-// Name for Webserver
-param adminuser string
+@description('Location for all resources.')
+param location string = 'eastus'
 
-// Password for Webserver
+@description('Environment')
+param envt string = 'prod'
+
+@description('Webserver admin user name')
+param adminUsername string
+
+@description('Webserver admin user password')
 @secure()
-@minLength(12)
-param adminPassword string
+param adminPasswordOrKey string
 
-// DNS Name for Webserver
-param dnsweb string
+@description('Management Admin user name')
+param mgmtUserName string
 
-//Username for Windows Admin server
-param mgmtUser string
-
-//Password for Windows Admin server (Must be atleast 12 characters)
+@description('Management Admin password')
 @secure()
-@minLength(12)
 param mgmtPassword string
 
-// DNS name for Windows Server
-param dnswindows string
+@description('Management server DNS name')
+param mgmtDNSName string
 
-// @description('Set the local VNet name')
-// param winVNetName string = 'winVNET'
-
-// @description('Set the remote VNet name')
-// param vmssVNetName string = 'vmssVNET'
-
-@description('Key Vault Name')
-param keyvaultname string = 'techkeyvaultproject123'
-
-var rgname = 'rgroupProject'
-param location string = 'westeurope'
-var winvnet = winadminvm.outputs.winvnetname
-var webvnet = webservervm.outputs.webvnetname
+@description('Unique Key vault name')
+param keyvaultname string
 
 
 //---------------------Resource Group--------------------------//
-resource rgroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
-  name: rgname
+resource resourceGp 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: '${envt}rg'
   location: location
-  tags: {
-    name : 'Cloud'
-    value: 'Cloudproject12'
-  }
 }
+
 //---------------------Storage Account-------------------------//
-module storageaccount './storage.Bicep' = {
-  scope: rgroup
+module storage 'storage.bicep' = {
+  scope: resourceGp
   name: 'storagedeployment'
   params: {
     location : location
  }
 }
 //------------------Windows Admin Server-----------------------//
-module winadminvm 'adminsvr.bicep' = {
-  scope: rgroup
-  name: 'Adminserver'
+module adminservervm 'adminsvr.bicep' = {
+  scope: resourceGp
+  name: 'ManagementServerVM'
   params: {
-    location: rgroup.location
-    adminUsername: mgmtUser
+    location: location
     adminPassword: mgmtPassword
-    mgmtdnsLabelPrefix: dnswindows
-  }
+    adminUsername: mgmtUserName
+    mgmtdnsLabelPrefix: mgmtDNSName
+    storageAccountName: storage.outputs.name
+ }
 }
+
+module webscaleset 'webscaleset.bicep'= {
+  scope: resourceGp
+  name: 'WebserverVMSS'
+  params: {
+    location: location
+    adminPasswordOrKey: adminPasswordOrKey
+    adminUsername: adminUsername
+    storagename: storage.outputs.name
+    publicipmgmtserver: adminservervm.outputs.pip
+    identityName:keyvault.outputs.identityName
+    secreturl : keyvault.outputs.certificateSecretIdUnversioned
+    bloburl: storage.outputs.bloburl
+  }
+  dependsOn: [
+    keyvault
+  ]
+}
+
+/*
 //------------------------Webserver----------------------------//
 module webservervm 'websvr.bicep' = {
-  scope: rgroup
+  scope: resourceGp
   name: 'Webserver'
   params: {
-    location: rgroup.location
+    location: resourceGp.location
     adminUsername: adminuser
     adminPasswordOrKey: adminPassword
     dnsNameForPublicIP: dnsweb
   }
 }
+
+
 //-----------------------Vnet Peering---------------------------//
 module vnetpeering 'vnetpeering.bicep' = {
-  scope: rgroup
+  scope: resourceGp
   name: 'vnetpeering'
   params: {
     WebVirtualNetworkName: webvnet
     WinVirtualNetworkName: winvnet
-    ResourceGroupName: rgname
+    ResourceGroupName: resourceGp
   }
 }
+*/
+
 //------------------------KeyVault----------------------------//
-module keyvault 'keyvault.bicep' = {
-  scope: rgroup
+module keyvault 'cert.bicep' = {
+  scope: resourceGp
   name: 'keyvault'
   params: {
-    keyvaultname: keyvaultname
+    keyVaultName: keyvaultname
     location: location
 }
 }
 
 //------------------Encryption Webserver----------------------//
+/*
 module websvrencryption 'websvrencryption.bicep' = {
-  scope: rgroup
+  scope: resourceGp
   name: 'websvrencryption'
   params: {
     keyvaultname: keyvaultname
-    vmName_var: webservervm.outputs.webvmname
+    vmName_var: webscaleset.outputs.webvmname
     location: location
   }
   dependsOn: [
-   webservervm
+   // webscaleset
    keyvault
   ]
 }
-
+*/
 
 //------------------Encryption Adminserver----------------------//
 module adminsvrencryption 'adminsvrencryption.bicep'= {
-  scope: rgroup
+  scope: resourceGp
    name: 'adminsvrencryption'
   params: {
      keyvaultname: keyvaultname
-     vmName: winadminvm.outputs.winvmname
+     vmName: adminservervm.outputs.adminvmname
      location:location
    }
    dependsOn: [
-     winadminvm
+     adminservervm
      keyvault
    ]
  }
