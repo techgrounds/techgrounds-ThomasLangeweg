@@ -78,7 +78,7 @@ module webscaleset 'webscaleset.bicep'= {
 }
 
 
-//-----------------------Vnet Peering---------------------------////VNet Peering to Webserver
+//-----------------------Vnet Peering---------------------------//
 module vnetpeeringtoweb 'vnetpeering.bicep' ={
   scope: resourceGp
   name: 'VnetPeeringWeb'
@@ -93,7 +93,7 @@ module vnetpeeringtoweb 'vnetpeering.bicep' ={
   ]
 }
 
-//VNet Peering to management server
+//-----------VNet Peering to management server---------------//
 module vnetpeeringtomgmt 'vnetpeering.bicep' ={
   scope: resourceGp
   name: 'VnetPeeringMgmt'
@@ -117,23 +117,6 @@ module keyvault 'cert.bicep' = {
     location: location
 }
 }
-
-//------------------Encryption Webserver----------------------//
-/*
-module websvrencryption 'websvrencryption.bicep' = {
-  scope: resourceGp
-  name: 'websvrencryption'
-  params: {
-    keyvaultname: keyvaultname
-    vmName_var: webscaleset.outputs.webvmname
-    location: location
-  }
-  dependsOn: [
-   // webscaleset
-   keyvault
-  ]
-}
-*/
 
 //------------------Encryption Adminserver----------------------//
 module adminsvrencryption 'adminsvrencryption.bicep'= {
